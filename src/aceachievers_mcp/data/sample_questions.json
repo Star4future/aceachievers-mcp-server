@@ -1,0 +1,116 @@
+{
+  "note": "Original sample questions written for this open-source demo, in the style of the production question bank. The production deployment points this server at the private question-bank store (2,500+ taxonomically classified problems); real past-paper content is licensed and is not redistributed here.",
+  "hint_policy": "Three-tier pedagogy mirroring the production RAG hint system: hint_1 nudges, hint_2 gives the approach, solution shows full working.",
+  "questions": [
+    {
+      "id": "SAMPLE-NT-001",
+      "subject": "maths",
+      "topic": "number-theory",
+      "difficulty": "easy",
+      "question": "What is the smallest positive integer that is divisible by both 6 and 8?",
+      "hint_1": "Is it really 6 × 8 = 48? Can you find something smaller that both divide into?",
+      "hint_2": "List the multiples of 8 (8, 16, 24, ...) and stop at the first one that is also a multiple of 6 — this is the lowest common multiple.",
+      "solution": "The LCM of 6 and 8: 6 = 2 × 3 and 8 = 2³, so LCM = 2³ × 3 = 24.",
+      "answer": "24"
+    },
+    {
+      "id": "SAMPLE-CO-001",
+      "subject": "maths",
+      "topic": "counting",
+      "difficulty": "easy",
+      "question": "How many two-digit numbers have digits that add to 9?",
+      "hint_1": "Write a few down: 18, 27... what pattern do the first digits follow?",
+      "hint_2": "The tens digit can run from 1 to 9; the units digit is forced each time. Check the edge case ending in 0.",
+      "solution": "Tens digit t runs 1-9 with units digit 9−t: 18, 27, 36, 45, 54, 63, 72, 81, 90 — nine numbers.",
+      "answer": "9"
+    },
+    {
+      "id": "SAMPLE-NT-002",
+      "subject": "maths",
+      "topic": "number-theory",
+      "difficulty": "medium",
+      "question": "What is the last digit of 7^2026?",
+      "hint_1": "Work out the last digit of 7¹, 7², 7³, 7⁴ — what do you notice?",
+      "hint_2": "The last digits cycle 7, 9, 3, 1 with period 4, so reduce the exponent modulo 4.",
+      "solution": "Last digits of powers of 7 cycle (7, 9, 3, 1). 2026 mod 4 = 2, so the last digit matches 7², which is 9.",
+      "answer": "9"
+    },
+    {
+      "id": "SAMPLE-GE-001",
+      "subject": "maths",
+      "topic": "geometry",
+      "difficulty": "medium",
+      "question": "A square has the same area as a 16 cm by 4 cm rectangle. What is the perimeter of the square?",
+      "hint_1": "Start from what the two shapes share — the area.",
+      "hint_2": "Area = 64 cm², so find the side length of the square first, then its perimeter.",
+      "solution": "Rectangle area = 16 × 4 = 64 cm². Square side = √64 = 8 cm, so perimeter = 4 × 8 = 32 cm.",
+      "answer": "32 cm"
+    },
+    {
+      "id": "SAMPLE-AL-001",
+      "subject": "maths",
+      "topic": "algebra",
+      "difficulty": "medium",
+      "question": "If x + y = 10 and xy = 21, what is x² + y²?",
+      "hint_1": "You don't need to find x and y individually.",
+      "hint_2": "Expand (x + y)² and rearrange for x² + y².",
+      "solution": "(x + y)² = x² + 2xy + y², so x² + y² = 10² − 2 × 21 = 100 − 42 = 58.",
+      "answer": "58"
+    },
+    {
+      "id": "SAMPLE-CO-002",
+      "subject": "maths",
+      "topic": "counting",
+      "difficulty": "medium",
+      "question": "In how many ways can the letters of MATHS be arranged so that the arrangement starts with a vowel?",
+      "hint_1": "How many vowels does MATHS have? What does fixing the first letter leave you with?",
+      "hint_2": "Fix A in the first position, then count arrangements of the remaining four distinct letters.",
+      "solution": "The only vowel is A. Fix A first; the remaining 4 distinct letters arrange in 4! = 24 ways.",
+      "answer": "24"
+    },
+    {
+      "id": "SAMPLE-NT-003",
+      "subject": "maths",
+      "topic": "number-theory",
+      "difficulty": "hard",
+      "question": "How many positive integers less than 100 have exactly three positive divisors?",
+      "hint_1": "Try small numbers: which ones have exactly three divisors? What kind of numbers are they?",
+      "hint_2": "A number has exactly three divisors precisely when it is the square of a prime (divisors: 1, p, p²).",
+      "solution": "Squares of primes under 100: 4, 9, 25, 49 (11² = 121 is too big) — four numbers.",
+      "answer": "4"
+    },
+    {
+      "id": "SAMPLE-GE-002",
+      "subject": "maths",
+      "topic": "geometry",
+      "difficulty": "hard",
+      "question": "A circle is inscribed in a square of side 10. What is the area inside the square but outside the circle? Give your answer in terms of π.",
+      "hint_1": "What is the radius of a circle inscribed in a square of side 10?",
+      "hint_2": "Subtract the circle's area from the square's area; the circle's diameter equals the square's side.",
+      "solution": "Radius = 5, so circle area = 25π. Square area = 100. Region = 100 − 25π.",
+      "answer": "100 − 25π"
+    },
+    {
+      "id": "SAMPLE-CO-003",
+      "subject": "maths",
+      "topic": "counting",
+      "difficulty": "hard",
+      "question": "In how many ways can 3 identical apples be shared among 4 children, if a child may receive none?",
+      "hint_1": "The apples are identical — only how many each child gets matters.",
+      "hint_2": "Count solutions of a + b + c + d = 3 in non-negative integers (stars and bars).",
+      "solution": "Stars and bars: C(3 + 4 − 1, 4 − 1) = C(6, 3) = 20.",
+      "answer": "20"
+    },
+    {
+      "id": "SAMPLE-AL-002",
+      "subject": "maths",
+      "topic": "rates",
+      "difficulty": "hard",
+      "question": "One tap fills a tank in 6 hours and a second tap fills it in 3 hours. Running together, how many minutes do they take to fill the tank?",
+      "hint_1": "Think in tanks-per-hour, not hours-per-tank.",
+      "hint_2": "Add the two rates (1/6 + 1/3 of a tank per hour), then invert.",
+      "solution": "Combined rate = 1/6 + 1/3 = 1/2 tank per hour, so the tank fills in 2 hours = 120 minutes.",
+      "answer": "120 minutes"
+    }
+  ]
+}
