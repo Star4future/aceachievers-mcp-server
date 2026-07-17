@@ -4,6 +4,7 @@
 > [Ace Achievers](https://aceachievers.com.au) course catalog and question-bank tools to any
 > MCP client — Claude Desktop, Claude Code, or your own agent.
 
+[![CI](https://github.com/Star4future/aceachievers-mcp-server/actions/workflows/ci.yml/badge.svg)](https://github.com/Star4future/aceachievers-mcp-server/actions/workflows/ci.yml)
 [![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?logo=python&logoColor=white)]()
 [![MCP](https://img.shields.io/badge/Protocol-MCP-6B4FBB)]()
 [![MIT](https://img.shields.io/badge/License-MIT-yellow)]()
