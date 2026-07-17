@@ -1,4 +1,5 @@
 """Unit tests for the catalog / question-bank tool logic."""
+import json
 import sys
 from pathlib import Path
 
@@ -8,6 +9,7 @@ from aceachievers_mcp.server import (  # noqa: E402
     _get_course,
     _get_pricing_info,
     _get_question,
+    _qbank_stats,
     _search_courses,
     _search_questions,
 )
@@ -82,3 +84,75 @@ def test_pricing_info_is_redirect_only():
     assert p["live_source"] == "https://aceachievers.com.au/pricing.html"
     assert not any(ch.isdigit() and ch != "0" for ch in "")  # no hardcoded amounts field at all
     assert "price" not in p
+
+
+# ── qbank stats + private-bank loading ───────────────────────────────
+
+
+def test_qbank_stats_bundled_by_default():
+    s = _qbank_stats()
+    assert s["data_source"] == "bundled sample set"
+    assert s["total_questions"] == 10
+    assert s["by_subject"] == {"maths": 10}
+
+
+def _write_private_bank(tmp_path):
+    """A minimal file mixing both production schemas (AMC + science)."""
+    bank = {
+        "problems": [
+            {  # AMC maths shape: numeric difficulty, category/subcategory
+                "id": "PRIV-AMC-001",
+                "year": 2023,
+                "level": "Junior",
+                "difficulty": 4,
+                "category": "Geometry",
+                "subcategory": "Plane Areas",
+                "problem_text": "A rectangle has area 24 and perimeter 20. Find its diagonal.",
+                "answer": "C",
+                "answer_value": "sqrt(52)",
+                "solution_brief": "Sides 4 and 6; diagonal = sqrt(16+36).",
+            },
+            {  # science-olympiad shape: discipline/topic, numeric difficulty
+                "id": "PRIV-JSO-001",
+                "year": 2021,
+                "level": "JSO",
+                "difficulty": 2,
+                "discipline": "Biology",
+                "topic": "Cell Biology",
+                "question_text": "Which organelle is absent in prokaryotes?",
+                "answer": "nucleus",
+            },
+        ]
+    }
+    fp = tmp_path / "private_bank.json"
+    fp.write_text(json.dumps(bank), encoding="utf-8")
+    return fp
+
+
+def test_private_bank_normalises_both_schemas(tmp_path, monkeypatch):
+    monkeypatch.setenv("QBANK_PATHS", str(_write_private_bank(tmp_path)))
+    listing = _search_questions()
+    assert {q["id"] for q in listing} == {"PRIV-AMC-001", "PRIV-JSO-001"}
+    amc = next(q for q in listing if q["id"] == "PRIV-AMC-001")
+    jso = next(q for q in listing if q["id"] == "PRIV-JSO-001")
+    assert amc["subject"] == "maths" and amc["difficulty"] == "hard"
+    assert amc["topic"] == "geometry"
+    assert jso["subject"] == "science" and jso["difficulty"] == "easy"
+    assert jso["topic"] == "cell-biology"
+
+
+def test_private_bank_reveal_degrades_without_hints(tmp_path, monkeypatch):
+    monkeypatch.setenv("QBANK_PATHS", str(_write_private_bank(tmp_path)))
+    q1 = _get_question("PRIV-AMC-001", hint_level=1)
+    assert "hint_1" not in q1 and "solution" not in q1  # no authored hints, no spoilers
+    q3 = _get_question("PRIV-AMC-001", hint_level=3)
+    assert q3["solution"].startswith("Sides 4 and 6")
+    assert q3["answer"] == "sqrt(52)"
+
+
+def test_private_bank_stats_source_label(tmp_path, monkeypatch):
+    monkeypatch.setenv("QBANK_PATHS", str(_write_private_bank(tmp_path)))
+    s = _qbank_stats()
+    assert s["data_source"].startswith("private bank")
+    assert s["total_questions"] == 2
+    assert s["by_subject"] == {"maths": 1, "science": 1}

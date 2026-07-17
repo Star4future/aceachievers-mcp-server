@@ -19,6 +19,11 @@ from typing import Any
 
 from mcp.server.fastmcp import FastMCP
 
+try:  # package mode (pip install -e / python -m)
+    from . import private_bank
+except ImportError:  # run as a loose file: python src/aceachievers_mcp/server.py
+    import private_bank  # type: ignore[no-redef]
+
 DATA_DIR = Path(__file__).parent / "data"
 PRICING_URL = "https://aceachievers.com.au/pricing.html"
 
@@ -35,6 +40,15 @@ mcp = FastMCP(
 def _load(name: str) -> dict:
     with open(DATA_DIR / name, encoding="utf-8") as f:
         return json.load(f)
+
+
+def _questions() -> list[dict[str, Any]]:
+    """Question source: the private bank when configured, else the bundled sample."""
+    if private_bank.is_configured():
+        records = private_bank.load_questions()
+        if records:
+            return records
+    return _load("sample_questions.json")["questions"]
 
 
 # ── catalog tools ────────────────────────────────────────────────────
@@ -107,9 +121,8 @@ def _search_questions(
     topic: str | None = None,
     difficulty: str | None = None,
 ) -> list[dict[str, Any]]:
-    qs = _load("sample_questions.json")["questions"]
     out = []
-    for q in qs:
+    for q in _questions():
         if topic and topic.lower().strip() not in q["topic"]:
             continue
         if difficulty and q["difficulty"] != difficulty.lower().strip():
@@ -137,7 +150,7 @@ def search_questions(
 
 
 def _get_question(question_id: str, hint_level: int = 0) -> dict[str, Any]:
-    qs = {q["id"]: q for q in _load("sample_questions.json")["questions"]}
+    qs = {q["id"]: q for q in _questions()}
     if question_id not in qs:
         return {
             "error": f"Unknown question_id '{question_id}'",
@@ -146,15 +159,18 @@ def _get_question(question_id: str, hint_level: int = 0) -> dict[str, Any]:
     q = qs[question_id]
     out = {k: q[k] for k in ("id", "subject", "topic", "difficulty", "question")}
     # Tiered reveal mirrors the production hint pedagogy: never hand the
-    # solution to a student who asked for a nudge.
+    # solution to a student who asked for a nudge. Private-bank records may
+    # carry no authored hints — reveal only what exists.
     level = max(0, min(3, int(hint_level)))
-    if level >= 1:
+    if level >= 1 and "hint_1" in q:
         out["hint_1"] = q["hint_1"]
-    if level >= 2:
+    if level >= 2 and "hint_2" in q:
         out["hint_2"] = q["hint_2"]
     if level >= 3:
-        out["solution"] = q["solution"]
-        out["answer"] = q["answer"]
+        if "solution" in q:
+            out["solution"] = q["solution"]
+        if "answer" in q:
+            out["answer"] = q["answer"]
     return out
 
 
@@ -168,6 +184,41 @@ def get_question(question_id: str, hint_level: int = 0) -> dict[str, Any]:
             3 = + full solution and answer.
     """
     return _get_question(question_id, hint_level)
+
+
+# ── corpus stats ─────────────────────────────────────────────────────
+
+def _qbank_stats() -> dict[str, Any]:
+    qs = _questions()
+
+    def count_by(key: str) -> dict[str, int]:
+        acc: dict[str, int] = {}
+        for q in qs:
+            k = str(q.get(key) or "unknown")
+            acc[k] = acc.get(k, 0) + 1
+        return dict(sorted(acc.items(), key=lambda kv: -kv[1]))
+
+    return {
+        "data_source": (
+            "private bank (QBANK_PATHS / QBANK_DIR)"
+            if private_bank.is_configured()
+            else "bundled sample set"
+        ),
+        "total_questions": len(qs),
+        "by_subject": count_by("subject"),
+        "by_difficulty": count_by("difficulty"),
+        "top_topics": dict(list(count_by("topic").items())[:12]),
+    }
+
+
+@mcp.tool()
+def qbank_stats() -> dict[str, Any]:
+    """Corpus overview: data source and counts by subject / difficulty / topic.
+
+    Serves the bundled sample by default; when QBANK_PATHS or QBANK_DIR is
+    set, the same tools run against the private production bank instead.
+    """
+    return _qbank_stats()
 
 
 # ── pricing (redirect-volatile) ──────────────────────────────────────

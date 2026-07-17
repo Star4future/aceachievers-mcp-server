@@ -25,6 +25,7 @@ against live catalog data instead of guessing.
 | `get_course(course_id)` | One course in full — structure, target band, free-tier info |
 | `search_questions(topic?, difficulty?)` | Search the question bank — returns stems only, never spoilers |
 | `get_question(question_id, hint_level)` | Tiered reveal: 0 = question, 1 = nudge, 2 = approach, 3 = full solution |
+| `qbank_stats()` | Corpus overview — data source and counts by subject / difficulty / topic |
 | `get_pricing_info()` | The redirect-volatile pricing contract (see design notes) |
 
 ## Quick start
@@ -67,20 +68,33 @@ who asks for a nudge must not receive the answer, so hints unlock level by level
 listing view never includes solutions. The guardrail lives server-side — the client can't
 accidentally spoil.
 
-**Sample data.** The bundled question set is original material written for this demo in the
-production bank's format. The production deployment points these same tools at the private
-store (2,500+ taxonomically classified problems, extracted from PDFs via a Vision-API
-pipeline); licensed past-paper content is not redistributed here.
+**Sample data in the repo, real bank via env.** The bundled question set is original material
+written for this demo in the production bank's format; licensed past-paper content is not
+redistributed here. The production deployment points these *same tools* at the private store
+(2,500+ taxonomically classified problems, extracted from PDFs via a Vision-API pipeline) —
+implemented via environment variables, with records from both production schemas (AMC maths
+and science-olympiad) normalised onto one shape (`private_bank.py`):
+
+```bash
+# option 1 — explicit files, ";"-separated
+QBANK_PATHS="D:\private\amc_junior.json;D:\private\jso_master.json"
+# option 2 — a directory of *.json bank files
+QBANK_DIR="D:\private\qbank"
+```
+
+No env vars → the bundled sample serves; unknown ids and missing hints degrade gracefully.
 
 ## Layout
 
 ```
 src/aceachievers_mcp/
-├── server.py          # FastMCP server: 5 tools, pure logic separated for testing
+├── server.py          # FastMCP server: 6 tools, pure logic separated for testing
+├── private_bank.py    # env-configured private bank loading + schema normalisation
 └── data/
     ├── courses.json           # 26-course catalog snapshot (no prices — by design)
     └── sample_questions.json  # 10 original questions with 3-tier hints
-tests/test_tools.py    # 13 unit tests
+scripts/demo_client.py # stdio client that exercises all six tools end-to-end
+tests/test_tools.py    # 16 unit tests
 ```
 
 ## License
