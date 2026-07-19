@@ -24,3 +24,46 @@ jobs:
 
       - name: Unit tests
         run: pytest -q
+
+  ts-client:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: clients/ts
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: clients/ts/package-lock.json
+
+      - name: Install
+        run: npm ci
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Format check
+        run: npm run format:check
+
+      - name: Unit tests (hermetic — no Python)
+        run: npm run test:unit
+
+      # Integration tests and the catalogue contract check drive the real server:
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install the server (so `python -m aceachievers_mcp.server` runs)
+        run: pip install -e "${{ github.workspace }}"
+
+      - name: Integration tests (spawns the real server over stdio)
+        run: npm run test:integration
+
+      - name: Catalogue contract check (real consumer of the typed client)
+        run: npm run report

@@ -5,3 +5,7 @@
 dist/
 build/
 .venv/
+
+# Node (TypeScript client under clients/ts/)
+node_modules/
+*.tsbuildinfo

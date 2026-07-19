@@ -34,7 +34,7 @@ against live catalog data instead of guessing.
 git clone https://github.com/Star4future/aceachievers-mcp-server
 cd aceachievers-mcp-server
 pip install -e ".[dev]"
-pytest                      # 12 tests
+pytest                      # 16 tests
 aceachievers-mcp            # runs the stdio server
 ```
 
@@ -53,6 +53,25 @@ Add to `claude_desktop_config.json`:
 ```
 
 Then ask Claude: *"Find a hard geometry question and give me a nudge, not the answer."*
+
+## TypeScript client
+
+The server is Python; the product that would consume it is TypeScript. So the
+repo also ships a typed, **zod-validated** TS/Node client
+([`clients/ts/`](clients/ts/)) built on the official
+`@modelcontextprotocol/sdk` — the same six tools behind typed methods, every
+result validated at runtime (not cast):
+
+```bash
+cd clients/ts
+npm install
+npm run test:unit    # 5 hermetic tests — green with NO Python installed
+npm test             # + 4 integration tests against the real server
+npm run demo         # call every tool through the typed client
+npm run report       # catalogue contract check (a real consumer, CI-gated)
+```
+
+See [`clients/ts/README.md`](clients/ts/README.md) for the design notes.
 
 ## Design notes
 
@@ -95,6 +114,7 @@ src/aceachievers_mcp/
     └── sample_questions.json  # 10 original questions with 3-tier hints
 scripts/demo_client.py # stdio client that exercises all six tools end-to-end
 tests/test_tools.py    # 16 unit tests
+clients/ts/            # typed, zod-validated TypeScript/Node client (9 tests + CI)
 ```
 
 ## License
