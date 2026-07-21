@@ -5,7 +5,7 @@ description = "MCP server exposing the Ace Achievers course catalog and question
 readme = "README.md"
 requires-python = ">=3.10"
 license = { text = "MIT" }
-authors = [{ name = "Connie Liang", email = "ai.empowerv@gmail.com" }]
+authors = [{ name = "Connie Liang", email = "connieliang043@gmail.com" }]
 keywords = ["mcp", "model-context-protocol", "education", "llm", "agents"]
 dependencies = ["mcp>=1.0.0"]
 
